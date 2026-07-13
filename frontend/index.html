@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoD Semantic Search</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="header-with-logos">
+                    <img src="mod-logo.png" alt="UK Ministry of Defence" class="header-logo mod-logo">
+                    <h1>MoD Semantic Search</h1>
+                    <img src="5EYES-Rosette.png" alt="Five Eyes" class="header-logo nato-logo">
+                </div>
+                <p class="subtitle">Multimodal Intelligence Retrieval System</p>
+            </div>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="search">Search</button>
+            <button class="tab-btn" data-tab="browse">Browse All</button>
+            <button class="tab-btn" data-tab="upload">Upload Data</button>
+        </nav>
+
+        <!-- Search Tab -->
+        <div id="search-tab" class="tab-content active">
+            <div class="search-panel">
+                <div class="search-header">
+                    <h2>Search Intelligence Database</h2>
+                    <p>Enter natural language queries to search across documents, audio, and images</p>
+                </div>
+
+                <div class="search-box">
+                    <input
+                        type="text"
+                        id="search-input"
+                        placeholder="e.g., Show me documents about Challenger tanks..."
+                        autocomplete="off"
+                    />
+                    <button id="search-btn" class="btn btn-primary">Search</button>
+                </div>
+
+                <div class="filters">
+                    <label>Filter by type:</label>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-modality="all">All</button>
+                        <button class="filter-btn" data-modality="pdf">📄 PDFs</button>
+                        <button class="filter-btn" data-modality="audio">🎵 Audio</button>
+                        <button class="filter-btn" data-modality="video">🎬 Videos</button>
+                        <button class="filter-btn" data-modality="image">🖼️ Images</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="results-container">
+                <div id="welcome-state" class="state-message">
+                    <div class="welcome-icon">🔎</div>
+                    <h3>Ready to Search</h3>
+                    <p>Enter a query above to search the intelligence database</p>
+                    <div class="example-queries">
+                        <p><strong>Example queries:</strong></p>
+                        <ul>
+                            <li>"Show me documents about Challenger tanks"</li>
+                            <li>"Find audio related to artillery maintenance"</li>
+                            <li>"Search for images of armored vehicles"</li>
+                            <li>"Find anything mentioning 120mm gun systems"</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div id="loading-state" class="state-message hidden">
+                    <div class="spinner"></div>
+                    <p>Searching...</p>
+                </div>
+
+                <div id="error-state" class="state-message error hidden">
+                    <div class="error-icon">⚠️</div>
+                    <h3>Search Error</h3>
+                    <p id="error-message"></p>
+                </div>
+
+                <div id="results-list" class="hidden"></div>
+            </div>
+        </div>
+
+        <!-- Browse Tab -->
+        <div id="browse-tab" class="tab-content">
+            <div class="browse-panel">
+                <div class="browse-header">
+                    <h2>Browse All Documents</h2>
+                    <p>View all documents in the database</p>
+                </div>
+
+                <div class="browse-filters">
+                    <label>Filter by type:</label>
+                    <div class="filter-buttons">
+                        <button class="browse-filter-btn active" data-filter="all">All</button>
+                        <button class="browse-filter-btn" data-filter="pdf">📄 PDFs</button>
+                        <button class="browse-filter-btn" data-filter="audio">🎵 Audio</button>
+                        <button class="browse-filter-btn" data-filter="video">🎬 Videos</button>
+                        <button class="browse-filter-btn" data-filter="image">🖼️ Images</button>
+                    </div>
+                </div>
+
+                <div id="browse-container">
+                    <div id="browse-loading" class="state-message hidden">
+                        <div class="spinner"></div>
+                        <p>Loading documents...</p>
+                    </div>
+
+                    <div id="browse-error" class="state-message error hidden">
+                        <div class="error-icon">⚠️</div>
+                        <h3>Error Loading Documents</h3>
+                        <p id="browse-error-message"></p>
+                    </div>
+
+                    <div id="browse-list" class="hidden"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Tab -->
+        <div id="upload-tab" class="tab-content">
+            <div class="upload-panel">
+                <div class="upload-header">
+                    <h2>Upload Intelligence Data</h2>
+                    <p>Manually upload and embed documents, audio files, or images</p>
+                </div>
+
+                <form id="upload-form">
+                    <div class="form-group">
+                        <label for="upload-file">File *</label>
+                        <input type="file" id="upload-file" required accept=".pdf,.mp3,.wav,.ogg,.jpg,.jpeg,.png,.gif,.mp4,.avi,.mov,.mkv,.webm">
+                        <small>Supported: PDF, Audio (MP3, WAV, OGG), Images (JPG, PNG, GIF), Video (MP4, AVI, MOV, MKV, WEBM)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="upload-title">Title *</label>
+                        <input type="text" id="upload-title" required placeholder="Document title">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="upload-modality">Type *</label>
+                        <select id="upload-modality" required>
+                            <option value="">Select type...</option>
+                            <option value="pdf">PDF Document</option>
+                            <option value="audio">Audio File</option>
+                            <option value="video">Video File</option>
+                            <option value="image">Image</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="upload-tags">Tags</label>
+                        <input type="text" id="upload-tags" placeholder="e.g., tanks, maintenance, field-report (comma-separated)">
+                    </div>
+
+                    <div class="form-group" id="caption-group" style="display: none;">
+                        <label for="upload-caption">Image Caption *</label>
+                        <textarea id="upload-caption" rows="3" placeholder="Describe what's in the image..."></textarea>
+                    </div>
+
+                    <div class="form-group" id="transcript-group" style="display: none;">
+                        <label for="upload-transcript">Audio Transcript (Optional - Auto-transcribes if left empty)</label>
+                        <textarea id="upload-transcript" rows="5" placeholder="Leave empty for automatic transcription, or paste transcript here..."></textarea>
+                        <small>💡 Tip: Leave empty to automatically transcribe using AI (takes 1-2 minutes)</small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="upload-btn">Upload & Embed</button>
+                        <button type="button" class="btn btn-secondary" id="reset-btn">Reset</button>
+                    </div>
+                </form>
+
+                <div id="upload-status" class="hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
