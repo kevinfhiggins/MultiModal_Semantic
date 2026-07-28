@@ -8,3 +8,4 @@ voyageai==0.2.3
 PyPDF2==3.0.1
 python-multipart==0.0.12
 requests==2.32.3
+boto3==1.35.76

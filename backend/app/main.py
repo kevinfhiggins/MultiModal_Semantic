@@ -14,6 +14,7 @@ from .database import init_database, close_database, get_database
 from .embeddings import init_embeddings, get_embeddings
 from .search import create_search_service
 from .ingestion import DataIngestion
+from .storage import resolve_file
 from .transcription import transcribe_audio_file
 from .pdf_pages import find_pages_with_text, get_pdf_page_count
 from .models import (
@@ -71,8 +72,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve files with CORS headers for PDF.js
-file_storage_path = os.getenv("FILE_STORAGE_PATH", "../sample_data")
+# Serve files with CORS headers for PDF.js.
+# Files resolve from the local storage path, or are fetched from S3 on demand
+# (see app/storage.py) when S3_BUCKET is configured.
 
 @app.options("/files/{file_path:path}")
 async def serve_file_options(file_path: str):
@@ -90,9 +92,9 @@ async def serve_file_options(file_path: str):
 async def serve_file(file_path: str):
     """Serve files with CORS headers for PDF.js compatibility"""
     from fastapi.responses import FileResponse
-    full_path = Path(file_storage_path) / file_path
+    full_path = resolve_file(settings, file_path)
 
-    if not full_path.exists():
+    if full_path is None:
         raise HTTPException(status_code=404, detail="File not found")
 
     return FileResponse(
@@ -234,25 +236,28 @@ async def get_pdf_pages(document_id: str, query: str):
         if doc.get('modality') != 'pdf':
             raise HTTPException(status_code=400, detail="Document is not a PDF")
 
-        # Find the PDF file path
-        pdf_path = None
+        # Find the PDF file path. Resolve via the storage layer (local first,
+        # then S3 on demand), trying the stored relative path, the source
+        # filename, and the uploads subdir.
         source_file = doc.get('source_file', '')
+        stored_path = doc.get('file_path', '') or ''
 
-        # Try multiple locations
-        possible_paths = [
-            Path(doc.get('file_path', '')),
-            Path(f'sample_data/{source_file}'),
-            Path(f'../sample_data/{source_file}'),
-            Path(f'sample_data/uploads/{source_file}')
-        ]
+        resolved = (
+            (resolve_file(settings, stored_path) if stored_path else None)
+            or resolve_file(settings, source_file)
+            or resolve_file(settings, f"uploads/{source_file}")
+        )
 
-        for path in possible_paths:
-            if path.exists():
-                pdf_path = str(path)
-                break
+        # Last resort: an absolute path that happens to exist on this machine.
+        if resolved is None and stored_path and Path(stored_path).is_absolute():
+            p = Path(stored_path)
+            if p.exists():
+                resolved = p
 
-        if not pdf_path:
+        if resolved is None:
             raise HTTPException(status_code=404, detail="PDF file not found on disk")
+
+        pdf_path = str(resolved)
 
         # Find matching pages
         matching_pages = find_pages_with_text(pdf_path, query)
@@ -365,7 +370,8 @@ async def upload_document(
                 text_content=text_content,
                 transcript=transcript_text,
                 image_caption=image_caption,
-                file_url=file_url
+                file_url=file_url,
+                stored_path=f"uploads/{file.filename}"
             )
 
             return JSONResponse(

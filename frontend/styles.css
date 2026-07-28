@@ -136,6 +136,35 @@ header {
     color: var(--text-secondary);
 }
 
+.demo-queries {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.demo-queries label {
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--primary-color);
+}
+
+#demo-query-select {
+    flex: 1;
+    padding: 12px 15px;
+    font-size: 0.95rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+#demo-query-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
 .search-box {
     display: flex;
     gap: 10px;

@@ -55,6 +55,18 @@ function setupEventListeners() {
         if (e.key === 'Enter') handleSearch();
     });
 
+    // Demo query dropdown - pre-populate the search box and run it
+    const demoQuerySelect = document.getElementById('demo-query-select');
+    if (demoQuerySelect) {
+        demoQuerySelect.addEventListener('change', (e) => {
+            const query = e.target.value;
+            if (!query) return;
+            searchInput.value = query;
+            searchInput.focus();
+            handleSearch();
+        });
+    }
+
     // Filters
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -341,9 +353,10 @@ function createResultCard(result) {
             </div>
         </div>
         ${mediaContent}
+        ${result.modality === 'image' ? '' : `
         <div class="result-preview">
             ${escapeHtml(result.preview)}
-        </div>
+        </div>`}
         <div class="result-footer">
             <div class="result-tags">
                 ${result.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
@@ -713,9 +726,10 @@ function createBrowseCard(doc) {
             </div>
         </div>
         ${mediaContent}
+        ${doc.modality === 'image' ? '' : `
         <div class="browse-card-content">
             <p class="browse-card-preview">${escapeHtml(preview)}</p>
-        </div>
+        </div>`}
         <div class="browse-card-footer">
             <div class="browse-card-tags">
                 ${tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}

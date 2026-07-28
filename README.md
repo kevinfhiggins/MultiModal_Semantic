@@ -135,26 +135,41 @@ VECTOR_INDEX_NAME=vector_index
 VECTOR_DIMENSION=1024
 ```
 
-### 6. Prepare Sample Data
+### 6. Get the Media Assets
 
-The `sample_data/` directory contains a manifest with metadata for 15 sample documents. You have two options:
+The demo media assets (PDFs, images, audio, video — ~795 MB) live in a private
+S3 bucket (`s3://mod-semantic-demo/sample_data/`) rather than in git. You need
+AWS credentials with read access to the bucket (`aws configure`).
 
-**Option A: Use the provided data preparation script (recommended)**
+There are two ways to use them:
+
+**Option A: Fetch on demand from S3 (recommended, no download step)**
+
+Set the S3 config in your `.env` (already the default in `.env.example`):
 
 ```bash
-python3 scripts/create_sample_data.py
+S3_BUCKET=mod-semantic-demo
+S3_PREFIX=sample_data
+FILE_CACHE_PATH=sample_data
+AWS_REGION=us-east-2
 ```
 
-This will create placeholder PDF files with meaningful content based on the manifest.
+The backend fetches any missing file from S3 the first time it is requested
+and caches it locally under `FILE_CACHE_PATH`. Nothing to download up front.
 
-**Option B: Manually add files**
+**Option B: Download everything up front**
 
-Place your own files in the appropriate directories:
-- `sample_data/pdfs/` - 5 PDF files
-- `sample_data/audio/` - 5 audio files (MP3)
-- `sample_data/images/` - 5 image files (JPG/PNG)
+```bash
+./scripts/download_assets.sh
+```
 
-See `sample_data/README.txt` for the expected file names.
+This runs `aws s3 sync` into `sample_data/`. Use this if you want all assets
+offline, or to seed the database from local files.
+
+**Option C: Bring your own files**
+
+Place your own files under `sample_data/` and describe them in a
+`sample_data/manifest.json`, then seed (below).
 
 ### 7. Seed the Database
 

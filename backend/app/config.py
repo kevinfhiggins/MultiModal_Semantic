@@ -29,6 +29,13 @@ class Settings(BaseSettings):
     file_storage_path: str = "sample_data"
     file_base_url: str = "http://localhost:8000/files"
 
+    # S3-backed media assets (optional). When s3_bucket is set, files missing
+    # from file_storage_path are fetched from S3 on demand into file_cache_path.
+    s3_bucket: str = ""
+    s3_prefix: str = "sample_data"
+    file_cache_path: str = ""
+    aws_region: str = ""
+
     class Config:
         # Look for .env in project root
         env_file = str(Path(__file__).parent.parent.parent / ".env")

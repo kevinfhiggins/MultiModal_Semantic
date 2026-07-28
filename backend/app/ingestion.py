@@ -13,6 +13,8 @@ from .models import DocumentRecord
 from .audio_processing import AudioChunker
 from .video_processing import VideoProcessor
 from .transcription import transcribe_audio_file
+from .storage import resolve_file
+from .config import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +39,8 @@ class DataIngestion:
         text_content: Optional[str] = None,
         transcript: Optional[str] = None,
         image_caption: Optional[str] = None,
-        file_url: Optional[str] = None
+        file_url: Optional[str] = None,
+        stored_path: Optional[str] = None
     ) -> str:
         """
         Ingest a single document into MoD_Data collection
@@ -49,13 +52,16 @@ class DataIngestion:
             title: Document title
             modality: Type (pdf, audio, image)
             source_file: Original filename
-            file_path: Path to file on disk
+            file_path: Path to file on disk (used for processing; NOT stored)
             tags: List of tags
             metadata: Additional metadata
             text_content: Extracted text (for PDFs) - used for embedding only
             transcript: Audio transcript - used for embedding only
             image_caption: Image description - used for embedding only
             file_url: Optional URL to access the file
+            stored_path: Portable path (relative to the storage root) to persist
+                as the document's file_path. Defaults to source_file so the stored
+                value is machine-independent rather than an absolute local path.
 
         Returns:
             Inserted document ID
@@ -88,12 +94,16 @@ class DataIngestion:
         if modality == "video":
             video_chunks = self._create_video_chunks(file_path, metadata)
 
+        # Store a portable, machine-independent path (relative to the storage
+        # root), not the absolute local path used for processing.
+        record_path = stored_path if stored_path is not None else source_file
+
         # Build document record - NOTE: text_content, transcript, caption NOT stored
         doc = DocumentRecord(
             title=title,
             modality=modality,
             source_file=source_file,
-            file_path=file_path,
+            file_path=record_path,
             file_url=file_url,
             preview=preview,
             tags=tags,
@@ -356,6 +366,13 @@ class DataIngestion:
                 modality = item["modality"]
                 file_path = os.path.join(data_dir, item["file"])
 
+                # Resolve the file locally, or fetch it from S3 on demand.
+                # For pdf/video we need the bytes on disk to extract text/frames.
+                if not os.path.exists(file_path):
+                    resolved = resolve_file(get_settings(), item["file"])
+                    if resolved is not None:
+                        file_path = str(resolved)
+
                 # Extract content for embedding generation ONLY
                 # This content will NOT be stored in MongoDB
                 text_content = None
@@ -388,7 +405,8 @@ class DataIngestion:
                     text_content=text_content,
                     transcript=transcript,
                     image_caption=image_caption,
-                    file_url=file_url
+                    file_url=file_url,
+                    stored_path=item["file"]
                 )
 
                 stats["success"] += 1

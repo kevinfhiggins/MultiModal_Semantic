@@ -46,5 +46,8 @@ Thumbs.db
 # Sample data (large binary files)
 sample_data/
 
+# Migration backup (contains machine-specific absolute paths)
+scripts/file_path_backup.json
+
 # Claude Code
 .claude/
