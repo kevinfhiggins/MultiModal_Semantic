@@ -478,6 +478,21 @@ MoD_Semantic/
 
 ## 🔐 Security Notes
 
+**Secret-scanning pre-commit hook:**
+
+This repo ships a pre-commit hook (`.githooks/pre-commit`) that blocks commits
+containing likely secrets — credentialed connection strings, AWS keys, private
+keys, and assigned API tokens/passwords. Placeholder values (`<password>`,
+`YOUR_KEY`, etc.) are allowed so documentation examples commit cleanly.
+
+Enable it once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Bypass for a single commit (use sparingly) with `git commit --no-verify`.
+
 **For Production Deployment:**
 
 1. **Environment Variables:**

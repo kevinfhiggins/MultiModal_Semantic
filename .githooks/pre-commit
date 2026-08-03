@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+#
+# Pre-commit hook: block accidental commits of secrets.
+#
+# Scans the staged content (not the working tree) for high-signal secret
+# patterns. Obvious placeholders such as <password>, YOUR_KEY, or example.com
+# are ignored so documentation samples still commit cleanly.
+#
+# Enable in a fresh clone with:   git config core.hooksPath .githooks
+# Bypass a single commit with:    git commit --no-verify   (use sparingly)
+
+set -euo pipefail
+
+# Patterns that indicate a real secret. Each is an extended-regex.
+patterns=(
+  # DB connection strings with embedded credentials: scheme://user:pass@host
+  '[a-zA-Z0-9+.-]+://[^/[:space:]:]+:[^/[:space:]@]+@[^/[:space:]]+'
+  # AWS access key id
+  'AKIA[0-9A-Z]{16}'
+  # AWS secret access key (assigned)
+  'aws_secret_access_key[[:space:]]*=[[:space:]]*[A-Za-z0-9/+=]{40}'
+  # Private key blocks
+  '-----BEGIN[[:space:]]+(RSA|EC|OPENSSH|PGP|DSA)?[[:space:]]*PRIVATE KEY-----'
+  # Generic assigned secret/token/api key/password with a non-trivial value
+  '(api[_-]?key|secret|token|passwd|password)[[:space:]]*[:=][[:space:]]*["'"'"']?[A-Za-z0-9/+._-]{12,}'
+)
+
+# Substrings that mark a value as a harmless placeholder.
+placeholder='<[a-zA-Z_]+>|YOUR_|your_|EXAMPLE|example|CHANGEME|changeme|xxxx|XXXX|placeholder|<username>|<password>|<cluster>|dummy|sample'
+
+fail=0
+report() {
+  if [ "$fail" -eq 0 ]; then
+    echo "✖ pre-commit: potential secret(s) detected in staged changes:" >&2
+    echo >&2
+  fi
+  fail=1
+  echo "  $1" >&2
+}
+
+# Only inspect added/copied/modified files; skip deletions and binaries.
+files=$(git diff --cached --name-only --diff-filter=ACM)
+
+for f in $files; do
+  # Skip this hook itself and anything git treats as binary.
+  case "$f" in
+    .githooks/pre-commit) continue ;;
+  esac
+  if git diff --cached --numstat -- "$f" | grep -qP '^-\t-\t'; then
+    continue  # binary file
+  fi
+
+  # Newly added lines only (strip the leading '+').
+  added=$(git diff --cached -U0 -- "$f" | grep '^+' | grep -v '^+++' | sed 's/^+//')
+  [ -z "$added" ] && continue
+
+  for pat in "${patterns[@]}"; do
+    while IFS= read -r line; do
+      [ -z "$line" ] && continue
+      # Ignore lines that are clearly placeholders/examples.
+      if echo "$line" | grep -qEi "$placeholder"; then
+        continue
+      fi
+      report "$f: ${line:0:100}"
+    done < <(echo "$added" | grep -En "$pat" 2>/dev/null | cut -d: -f2- || true)
+  done
+done
+
+if [ "$fail" -ne 0 ]; then
+  echo >&2
+  echo "If this is a false positive, either use a placeholder value" >&2
+  echo "or bypass with:  git commit --no-verify" >&2
+  exit 1
+fi
+
+exit 0
