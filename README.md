@@ -493,6 +493,12 @@ git config core.hooksPath .githooks
 
 Bypass for a single commit (use sparingly) with `git commit --no-verify`.
 
+As a server-side backstop, the **Secret Scan** GitHub Actions workflow
+(`.github/workflows/secret-scan.yml`) runs [gitleaks](https://github.com/gitleaks/gitleaks)
+over the full commit history on every push and pull request — catching
+secrets even from commits made without the local hook. Allowlist rules live
+in `.gitleaks.toml`.
+
 **For Production Deployment:**
 
 1. **Environment Variables:**

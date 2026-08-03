@@ -1,0 +1,36 @@
+# Gitleaks configuration for the Secret Scan workflow.
+# Uses gitleaks' built-in rule set, plus an allowlist so documentation
+# placeholders (e.g. <username>:<password>@<cluster>) don't trip the scan.
+
+[extend]
+useDefault = true
+
+# Credentialed connection strings of the form scheme -> user + password -> host
+# (the leak type this repo previously exposed). Not covered by the
+# default ruleset, so it's defined explicitly here.
+[[rules]]
+id = "connection-string-credentials"
+description = "Connection string with embedded credentials"
+regex = '''[a-zA-Z][a-zA-Z0-9+.-]*://[^\s:/@]+:[^\s:/@]+@[^\s/]+'''
+tags = ["credentials", "connection-string"]
+
+[allowlist]
+description = "Allow documentation placeholders and example values"
+
+# Files whose sample values are safe by design.
+paths = [
+  '''\.env\.example$''',
+  '''\.githooks/pre-commit$''',
+  '''\.gitleaks\.toml$''',
+]
+
+# Lines/values that are obvious placeholders rather than real secrets.
+regexes = [
+  '''<username>''',
+  '''<password>''',
+  '''<cluster>''',
+  '''(?i)your_[a-z0-9_]*_(key|here|token|secret|password)''',
+  '''(?i)(username|password|YOUR_USER|YOUR_PASSWORD)@(cluster|YOUR_CLUSTER)''',
+  '''(?i)example\.com''',
+  '''(?i)changeme''',
+]
