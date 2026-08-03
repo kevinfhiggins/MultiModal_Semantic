@@ -18,7 +18,7 @@ MONGODB_COLLECTION=MoD_Data
 Test your MongoDB Atlas connection:
 
 ```bash
-cd ~/source/MoD_Semantic
+cd ~/source/MultiModal_Semantic
 python3 scripts/verify_atlas_setup.py
 ```
 
@@ -112,7 +112,7 @@ This will:
 ### Step 7: Start the Application
 
 ```bash
-cd ~/source/MoD_Semantic
+cd ~/source/MultiModal_Semantic
 ./RUN.sh
 ```
 

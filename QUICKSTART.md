@@ -14,7 +14,7 @@ Get the MoD Semantic Search application running in 15 minutes.
 ### 1. Install Python Dependencies (2 minutes)
 
 ```bash
-cd ~/source/MoD_Semantic/backend
+cd ~/source/MultiModal_Semantic/backend
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -64,7 +64,7 @@ pip install -r requirements.txt
 ### 4. Configure Environment (1 minute)
 
 ```bash
-cd ~/source/MoD_Semantic
+cd ~/source/MultiModal_Semantic
 cp .env.example .env
 nano .env  # or use your preferred editor
 ```
@@ -80,7 +80,7 @@ Save and close.
 ### 5. Create Sample Data (1 minute)
 
 ```bash
-cd ~/source/MoD_Semantic
+cd ~/source/MultiModal_Semantic
 python3 scripts/create_sample_data.py
 ```
 
@@ -111,7 +111,7 @@ INFO:     Uvicorn running on http://0.0.0.0:8000
 Open a new terminal:
 
 ```bash
-cd ~/source/MoD_Semantic/frontend
+cd ~/source/MultiModal_Semantic/frontend
 python3 -m http.server 3000
 ```
 

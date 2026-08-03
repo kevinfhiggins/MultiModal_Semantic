@@ -49,7 +49,7 @@ The system uses **Voyage AI embeddings** and **MongoDB Atlas Vector Search** to 
 ### 1. Clone and Navigate
 
 ```bash
-cd ~/source/MoD_Semantic
+cd ~/source/MultiModal_Semantic
 ```
 
 ### 2. Set Up Python Environment
@@ -109,7 +109,7 @@ pip install -r requirements.txt
 Create a `.env` file in the project root:
 
 ```bash
-cd ~/source/MoD_Semantic
+cd ~/source/MultiModal_Semantic
 cp .env.example .env
 ```
 
@@ -445,7 +445,7 @@ curl -X POST http://localhost:8000/search \
 ## 📁 Project Structure
 
 ```
-MoD_Semantic/
+MultiModal_Semantic/
 ├── backend/
 │   ├── app/
 │   │   ├── __init__.py
