@@ -1,10 +1,10 @@
 # MongoDB Atlas Setup Guide
 
-Your MongoDB connection has been configured. Follow these steps to complete the Atlas setup.
+Follow these steps to configure your MongoDB Atlas connection.
 
-## ✅ Connection Configured
+## ✅ Connection Configuration
 
-Your `.env` file has been created with:
+Create a `.env` file (copy from `.env.example`) and set your connection details:
 ```
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?retryWrites=true&w=majority
 MONGODB_DATABASE=mod_semantic_search
